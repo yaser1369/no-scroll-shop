@@ -398,3 +398,102 @@ button { cursor: pointer; }
   .cart-summary { min-height: 48px; font-size: 13px; }
   .cart-summary button { min-height: 34px; font-size: 12px; }
 }
+
+
+/* Version 3: pager is a dedicated row and can never overlap product cards. */
+.category-layout {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--gap);
+  overflow: hidden;
+}
+
+.product-grid {
+  min-height: 0;
+}
+
+.pager-row {
+  position: relative;
+  z-index: 20;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: minmax(95px, 1fr) auto minmax(95px, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  border-radius: 15px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+
+.pager-row button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--primary);
+  color: white;
+  font-weight: 800;
+}
+
+.pager-row button:disabled {
+  opacity: .35;
+  cursor: default;
+}
+
+.pager-row strong {
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.profile-panel {
+  min-height: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto 1fr auto;
+  gap: clamp(7px, 1.4dvh, 13px);
+  padding: clamp(12px, 3vw, 24px);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+
+.profile-panel h1 {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(19px, 4vw, 27px);
+}
+
+.profile-avatar {
+  width: clamp(58px, 15vw, 88px);
+  aspect-ratio: 1;
+  margin-inline: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #eef0f3;
+  font-size: clamp(28px, 8vw, 46px);
+}
+
+.profile-panel label {
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-panel input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 11px;
+  padding: 8px 11px;
+  background: white;
+}
+
+@media (max-height: 650px) {
+  .pager-row { min-height: 42px; }
+  .pager-row button { min-height: 34px; }
+  .profile-panel { gap: 5px; padding: 9px; }
+  .profile-panel input { min-height: 36px; }
+}

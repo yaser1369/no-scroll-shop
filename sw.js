@@ -1,5 +1,14 @@
-const CACHE = "no-scroll-shop-v2";
-const ASSETS = ["./","index.html","styles.css","app.js","admin.html","admin.css","admin.js","manifest.webmanifest"];
+const CACHE = "no-scroll-shop-v3";
+const ASSETS = [
+  "./",
+  "index.html",
+  "styles.css?v=3",
+  "app.js?v=3",
+  "admin.html",
+  "admin.css",
+  "admin.js",
+  "manifest.webmanifest"
+];
 
 self.addEventListener("install", event => {
   self.skipWaiting();
@@ -8,18 +17,22 @@ self.addEventListener("install", event => {
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key !== CACHE).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: "no-store" })
       .then(response => {
-        const copy = response.clone();
-        caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        }
         return response;
       })
       .catch(() => caches.match(event.request))

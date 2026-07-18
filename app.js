@@ -82,7 +82,7 @@ function topbar({showHome=false, showBack=false}={}) {
       <div class="brand">${escapeHtml(data.storeName)}</div>
       ${showBack ? `<button class="back-btn" data-nav="back" aria-label="برگشت">←</button>` : `<div></div>`}
       <button class="icon-btn" data-nav="cart" aria-label="سبد خرید">🛒<span class="cart-count">${cartCount}</span></button>
-      <button class="icon-btn" aria-label="حساب کاربری" onclick="alert('حساب کاربری نمونه')">👤</button>
+      <button class="icon-btn" data-nav="profile" aria-label="حساب کاربری">👤</button>
     </header>`;
 }
 
@@ -109,34 +109,35 @@ function renderCategory() {
   const data = getData();
   const products = data.products.filter(p => p.categoryId === state.categoryId);
   const totalPages = Math.max(1, Math.ceil(products.length / 4));
-  state.page = Math.min(state.page, totalPages - 1);
+  state.page = Math.max(0, Math.min(state.page, totalPages - 1));
   const visible = products.slice(state.page * 4, state.page * 4 + 4);
 
   app.innerHTML = `
     <section class="screen">
       ${topbar({showHome:true})}
-      ${visible.length ? `
-      <div class="grid-2x2">
-        ${visible.map(p => `
-          <button class="tile product-card" data-product="${escapeAttr(p.id)}">
-            <img src="${escapeAttr(p.image)}" alt="${escapeAttr(p.name)}" />
-            <span class="tile-label">
-              <strong>${escapeHtml(p.name)}</strong>
-              <span class="product-price">
-                <b>${money(p.price)}</b>
-                ${p.oldPrice ? `<span class="old-price">${money(p.oldPrice)}</span>` : ""}
-              </span>
-            </span>
-          </button>`).join("")}
+      <div class="category-layout">
+        ${visible.length ? `
+          <div class="grid-2x2 product-grid">
+            ${visible.map(p => `
+              <button class="tile product-card" data-product="${escapeAttr(p.id)}">
+                <img src="${escapeAttr(p.image)}" alt="${escapeAttr(p.name)}" />
+                <span class="tile-label">
+                  <strong>${escapeHtml(p.name)}</strong>
+                  <span class="product-price">
+                    <b>${money(p.price)}</b>
+                    ${p.oldPrice ? `<span class="old-price">${money(p.oldPrice)}</span>` : ""}
+                  </span>
+                </span>
+              </button>`).join("")}
+          </div>
+          ${totalPages > 1 ? `
+            <nav class="pager-row" aria-label="صفحه‌بندی محصولات">
+              <button type="button" data-page="prev" ${state.page === 0 ? "disabled" : ""}>صفحه قبل</button>
+              <strong>${state.page + 1} از ${totalPages}</strong>
+              <button type="button" data-page="next" ${state.page >= totalPages - 1 ? "disabled" : ""}>صفحه بعد</button>
+            </nav>` : `<div></div>`}
+        ` : `<div class="empty">محصولی در این دسته ثبت نشده است.</div>`}
       </div>
-      ${totalPages > 1 ? `
-      <div class="pager">
-        <div class="pager-box">
-          <button data-page="prev" ${state.page === 0 ? "disabled" : ""}>‹</button>
-          <span>${state.page + 1} از ${totalPages}</span>
-          <button data-page="next" ${state.page >= totalPages - 1 ? "disabled" : ""}>›</button>
-        </div>
-      </div>` : ""}` : `<div class="empty">محصولی در این دسته ثبت نشده است.</div>`}
     </section>`;
 }
 
@@ -185,6 +186,33 @@ function renderCart() {
             </div>
           </div>` : ""}
       ` : `<div class="empty">سبد خرید خالی است.</div>`}
+    </section>`;
+}
+
+function renderProfile() {
+  const profile = JSON.parse(localStorage.getItem("noScrollShopProfileV1") || "{}");
+
+  app.innerHTML = `
+    <section class="screen">
+      ${topbar({showHome:true, showBack:true})}
+      <form class="profile-panel" data-profile-form>
+        <div class="profile-avatar">👤</div>
+        <h1>پروفایل مشتری</h1>
+        <label>
+          نام و نام خانوادگی
+          <input name="fullName" type="text" value="${escapeAttr(profile.fullName || "")}" autocomplete="name" />
+        </label>
+        <label>
+          شماره موبایل
+          <input name="mobile" type="tel" inputmode="numeric" value="${escapeAttr(profile.mobile || "")}" autocomplete="tel" />
+        </label>
+        <label>
+          آدرس
+          <input name="address" type="text" value="${escapeAttr(profile.address || "")}" autocomplete="street-address" />
+        </label>
+        <div></div>
+        <button class="add-btn" type="submit">ذخیره اطلاعات</button>
+      </form>
     </section>`;
 }
 
@@ -241,6 +269,7 @@ function render() {
   else if (state.view === "category") renderCategory();
   else if (state.view === "product") renderProduct();
   else if (state.view === "cart") renderCart();
+  else if (state.view === "profile") renderProfile();
 }
 
 app.addEventListener("click", (e) => {
@@ -282,7 +311,8 @@ app.addEventListener("click", (e) => {
   if (nav) {
     if (nav.dataset.nav === "home") state.view = "home";
     else if (nav.dataset.nav === "cart") { state.cartPage = 0; state.view = "cart"; }
-    else if (nav.dataset.nav === "back") state.view = state.view === "cart" ? "home" : "category";
+    else if (nav.dataset.nav === "profile") state.view = "profile";
+    else if (nav.dataset.nav === "back") state.view = (state.view === "cart" || state.view === "profile") ? "home" : "category";
     render();
     return;
   }
@@ -322,6 +352,9 @@ app.addEventListener("click", (e) => {
     return;
   }
 
+  const profileForm = e.target.closest("[data-profile-form]");
+  if (profileForm) return;
+
   if (e.target.closest("[data-add-cart]")) {
     const cart = getCart();
     const existing = cart.find(item =>
@@ -341,6 +374,21 @@ app.addEventListener("click", (e) => {
     state.view = "cart";
     render();
   }
+});
+
+
+app.addEventListener("submit", (e) => {
+  const form = e.target.closest("[data-profile-form]");
+  if (!form) return;
+
+  e.preventDefault();
+  const formData = new FormData(form);
+  localStorage.setItem("noScrollShopProfileV1", JSON.stringify({
+    fullName: String(formData.get("fullName") || "").trim(),
+    mobile: String(formData.get("mobile") || "").trim(),
+    address: String(formData.get("address") || "").trim()
+  }));
+  alert("اطلاعات پروفایل ذخیره شد");
 });
 
 window.addEventListener("storage", (e) => {
