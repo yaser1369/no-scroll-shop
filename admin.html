@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>پنل مدیریت فروشگاه نمونه</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <header class="admin-header">
+    <div>
+      <h1>پنل مدیریت</h1>
+      <p>تغییر دسته‌ها، محصولات، قیمت، رنگ، سایز و تصاویر</p>
+    </div>
+    <div class="header-actions">
+      <a href="index.html" target="_blank">نمایش اپ</a>
+      <button id="resetBtn" class="danger">بازنشانی اطلاعات</button>
+    </div>
+  </header>
+
+  <main class="admin-layout">
+    <section class="panel">
+      <div class="panel-title">
+        <h2>تنظیمات عمومی</h2>
+        <button id="saveGeneralBtn">ذخیره</button>
+      </div>
+      <label>نام فروشگاه
+        <input id="storeName" type="text" />
+      </label>
+      <label>عنوان آفر
+        <input id="offerTitle" type="text" />
+      </label>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>دسته‌بندی‌ها</h2>
+        <button id="addCategoryBtn">افزودن دسته</button>
+      </div>
+      <div id="categoriesList" class="stack"></div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>محصولات</h2>
+        <button id="addProductBtn">افزودن محصول</button>
+      </div>
+      <div id="productsList" class="stack"></div>
+    </section>
+  </main>
+
+  <template id="categoryTemplate">
+    <article class="editor-card">
+      <div class="row">
+        <label>عنوان<input data-field="title" type="text" /></label>
+        <label>شناسه<input data-field="id" type="text" /></label>
+      </div>
+      <label>آدرس تصویر<input data-field="image" type="url" /></label>
+      <div class="editor-actions">
+        <button data-action="save">ذخیره</button>
+        <button data-action="delete" class="danger">حذف</button>
+      </div>
+    </article>
+  </template>
+
+  <template id="productTemplate">
+    <article class="editor-card">
+      <div class="row">
+        <label>نام محصول<input data-field="name" type="text" /></label>
+        <label>دسته<select data-field="categoryId"></select></label>
+      </div>
+      <div class="row">
+        <label>قیمت<input data-field="price" type="number" min="0" /></label>
+        <label>قیمت قبل<input data-field="oldPrice" type="number" min="0" /></label>
+      </div>
+      <label>آدرس تصویر<input data-field="image" type="url" /></label>
+      <div class="row">
+        <label>رنگ‌ها؛ با ویرگول جدا کنید<input data-field="colors" type="text" /></label>
+        <label>سایزها؛ با ویرگول جدا کنید<input data-field="sizes" type="text" /></label>
+      </div>
+      <label>توضیح کوتاه<input data-field="description" type="text" /></label>
+      <div class="editor-actions">
+        <button data-action="save">ذخیره</button>
+        <button data-action="delete" class="danger">حذف</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="admin.js"></script>
+</body>
+</html>
