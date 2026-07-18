@@ -109,6 +109,7 @@ function renderProducts() {
       };
       saveData(data);
       render();
+      alert("محصول ذخیره شد");
     };
 
     node.querySelector('[data-action="delete"]').onclick = () => {
@@ -152,6 +153,14 @@ document.getElementById("addProductBtn").onclick = () => {
   });
   saveData(data);
   render();
+  requestAnimationFrame(() => {
+    const firstCard = productsList.querySelector(".editor-card");
+    if (firstCard) {
+      firstCard.scrollIntoView({ behavior: "smooth", block: "center" });
+      const nameInput = firstCard.querySelector('[data-field="name"]');
+      if (nameInput) { nameInput.focus(); nameInput.select(); }
+    }
+  });
 };
 
 document.getElementById("resetBtn").onclick = () => {

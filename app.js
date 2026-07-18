@@ -63,7 +63,8 @@ const state = {
   page: 0,
   selectedColor: "",
   selectedSize: "",
-  qty: 1
+  qty: 1,
+  cartPage: 0
 };
 
 const app = document.getElementById("app");
@@ -80,7 +81,7 @@ function topbar({showHome=false, showBack=false}={}) {
       ${showHome ? `<button class="icon-btn" data-nav="home" aria-label="صفحه اصلی">⌂</button>` : `<div></div>`}
       <div class="brand">${escapeHtml(data.storeName)}</div>
       ${showBack ? `<button class="back-btn" data-nav="back" aria-label="برگشت">←</button>` : `<div></div>`}
-      <button class="icon-btn" aria-label="سبد خرید" onclick="alert('سبد خرید: ${cartCount} کالا')">🛒<span class="cart-count">${cartCount}</span></button>
+      <button class="icon-btn" data-nav="cart" aria-label="سبد خرید">🛒<span class="cart-count">${cartCount}</span></button>
       <button class="icon-btn" aria-label="حساب کاربری" onclick="alert('حساب کاربری نمونه')">👤</button>
     </header>`;
 }
@@ -139,6 +140,54 @@ function renderCategory() {
     </section>`;
 }
 
+function renderCart() {
+  const data = getData();
+  const cart = getCart();
+  const items = cart.map((item, index) => ({
+    ...item,
+    index,
+    product: data.products.find(p => p.id === item.productId)
+  })).filter(item => item.product);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / 4));
+  state.cartPage = Math.min(state.cartPage, totalPages - 1);
+  const visible = items.slice(state.cartPage * 4, state.cartPage * 4 + 4);
+  const total = items.reduce((sum, item) => sum + Number(item.product.price || 0) * Number(item.qty || 1), 0);
+
+  app.innerHTML = `
+    <section class="screen">
+      ${topbar({showHome:true, showBack:true})}
+      ${visible.length ? `
+        <div class="cart-layout">
+          <div class="grid-2x2 cart-grid">
+            ${visible.map(item => `
+              <article class="cart-card">
+                <img src="${escapeAttr(item.product.image)}" alt="${escapeAttr(item.product.name)}" />
+                <div class="cart-card-body">
+                  <strong>${escapeHtml(item.product.name)}</strong>
+                  <small>${escapeHtml(item.color || "")} ${item.size ? `• ${escapeHtml(item.size)}` : ""}</small>
+                  <span>${money(item.product.price)} × ${Number(item.qty).toLocaleString("fa-IR")}</span>
+                  <button data-remove-cart="${item.index}">حذف</button>
+                </div>
+              </article>`).join("")}
+          </div>
+          <div class="cart-summary">
+            <strong>جمع: ${money(total)}</strong>
+            <button data-checkout>ادامه و ثبت سفارش</button>
+          </div>
+        </div>
+        ${totalPages > 1 ? `
+          <div class="pager">
+            <div class="pager-box">
+              <button data-cart-page="prev" ${state.cartPage === 0 ? "disabled" : ""}>‹</button>
+              <span>${state.cartPage + 1} از ${totalPages}</span>
+              <button data-cart-page="next" ${state.cartPage >= totalPages - 1 ? "disabled" : ""}>›</button>
+            </div>
+          </div>` : ""}
+      ` : `<div class="empty">سبد خرید خالی است.</div>`}
+    </section>`;
+}
+
 function renderProduct() {
   const data = getData();
   const p = data.products.find(x => x.id === state.productId);
@@ -191,9 +240,24 @@ function render() {
   if (state.view === "home") renderHome();
   else if (state.view === "category") renderCategory();
   else if (state.view === "product") renderProduct();
+  else if (state.view === "cart") renderCart();
 }
 
 app.addEventListener("click", (e) => {
+  const pager = e.target.closest("[data-page]");
+  if (pager && !pager.disabled) {
+    state.page += pager.dataset.page === "next" ? 1 : -1;
+    render();
+    return;
+  }
+
+  const cartPager = e.target.closest("[data-cart-page]");
+  if (cartPager && !cartPager.disabled) {
+    state.cartPage += cartPager.dataset.cartPage === "next" ? 1 : -1;
+    render();
+    return;
+  }
+
   const category = e.target.closest("[data-category]");
   if (category) {
     state.categoryId = category.dataset.category;
@@ -217,14 +281,8 @@ app.addEventListener("click", (e) => {
   const nav = e.target.closest("[data-nav]");
   if (nav) {
     if (nav.dataset.nav === "home") state.view = "home";
-    else if (nav.dataset.nav === "back") state.view = "category";
-    render();
-    return;
-  }
-
-  const pager = e.target.closest("[data-page]");
-  if (pager && !pager.disabled) {
-    state.page += pager.dataset.page === "next" ? 1 : -1;
+    else if (nav.dataset.nav === "cart") { state.cartPage = 0; state.view = "cart"; }
+    else if (nav.dataset.nav === "back") state.view = state.view === "cart" ? "home" : "category";
     render();
     return;
   }
@@ -250,16 +308,37 @@ app.addEventListener("click", (e) => {
     return;
   }
 
+  const removeCart = e.target.closest("[data-remove-cart]");
+  if (removeCart) {
+    const cart = getCart();
+    cart.splice(Number(removeCart.dataset.removeCart), 1);
+    saveCart(cart);
+    render();
+    return;
+  }
+
+  if (e.target.closest("[data-checkout]")) {
+    alert("مرحله ثبت سفارش در نسخه بعدی تکمیل می‌شود.");
+    return;
+  }
+
   if (e.target.closest("[data-add-cart]")) {
     const cart = getCart();
-    cart.push({
+    const existing = cart.find(item =>
+      item.productId === state.productId &&
+      item.color === state.selectedColor &&
+      item.size === state.selectedSize
+    );
+    if (existing) existing.qty += state.qty;
+    else cart.push({
       productId: state.productId,
       color: state.selectedColor,
       size: state.selectedSize,
       qty: state.qty
     });
     saveCart(cart);
-    alert("به سبد خرید اضافه شد");
+    state.cartPage = 0;
+    state.view = "cart";
     render();
   }
 });
