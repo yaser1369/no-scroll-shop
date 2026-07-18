@@ -305,7 +305,11 @@ document.getElementById("resetBtn").onclick = () => {
 };
 
 function splitList(value) {
-  return value.split(",").map(x => x.trim()).filter(Boolean);
+  return String(value || "")
+    .split(/[,،;؛
+]+/)
+    .map(x => x.trim())
+    .filter(Boolean);
 }
 
 function escapeHtml(value="") {

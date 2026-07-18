@@ -40,16 +40,38 @@ const seedData = {
   ]
 };
 
+
+function normalizeOptionList(value) {
+  const source = Array.isArray(value) ? value : [value];
+
+  return source
+    .flatMap(item => String(item || "").split(/[,،;؛\n]+/))
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeStoreData(data) {
+  if (!data || typeof data !== "object") return data;
+
+  data.products = Array.isArray(data.products) ? data.products : [];
+  data.products.forEach(product => {
+    product.colors = normalizeOptionList(product.colors);
+    product.sizes = normalizeOptionList(product.sizes);
+  });
+
+  return data;
+}
+
 function getData() {
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(seedData));
-    return structuredClone(seedData);
+    return normalizeStoreData(structuredClone(seedData));
   }
-  try { return JSON.parse(raw); }
+  try { return normalizeStoreData(JSON.parse(raw)); }
   catch {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(seedData));
-    return structuredClone(seedData);
+    return normalizeStoreData(structuredClone(seedData));
   }
 }
 
