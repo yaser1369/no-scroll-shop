@@ -4,6 +4,12 @@ const STORAGE_KEY = "noScrollShopDataV1";
 const seedData = {
   storeName: "فروشگاه نمونه",
   offerTitle: "آفر ویژه",
+  header: {
+    title: "فروشگاه نمونه",
+    logo: "",
+    background: "#ffffff",
+    textColor: "#111827"
+  },
   categories: [
     { id: "women", title: "زنانه", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80" },
     { id: "men", title: "مردانه", image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=1200&q=80" },
@@ -32,13 +38,113 @@ const categoriesList = document.getElementById("categoriesList");
 const productsList = document.getElementById("productsList");
 const categoryTemplate = document.getElementById("categoryTemplate");
 const productTemplate = document.getElementById("productTemplate");
+const headerTitle = document.getElementById("headerTitle");
+const headerLogo = document.getElementById("headerLogo");
+const headerBackground = document.getElementById("headerBackground");
+const headerTextColor = document.getElementById("headerTextColor");
+const headerPreview = document.getElementById("headerPreview");
+const homeImagesEditor = document.getElementById("homeImagesEditor");
+
 
 function render() {
   storeName.value = data.storeName || "";
   offerTitle.value = data.offerTitle || "";
+
+  data.header = data.header || {
+    title: data.storeName || "فروشگاه نمونه",
+    logo: "",
+    background: "#ffffff",
+    textColor: "#111827"
+  };
+
+  headerTitle.value = data.header.title || data.storeName || "";
+  headerLogo.value = data.header.logo || "";
+  headerBackground.value = data.header.background || "#ffffff";
+  headerTextColor.value = data.header.textColor || "#111827";
+
+  renderHeaderPreview();
+  renderHomeImagesEditor();
   renderCategories();
   renderProducts();
 }
+
+
+function renderHeaderPreview() {
+  const title = headerTitle.value.trim() || "عنوان هدر";
+  const logo = headerLogo.value.trim();
+  const background = headerBackground.value || "#ffffff";
+  const textColor = headerTextColor.value || "#111827";
+
+  headerPreview.style.background = background;
+  headerPreview.style.color = textColor;
+  headerPreview.innerHTML = `
+    ${logo ? `<img src="${escapeHtml(logo)}" alt="لوگو" />` : `<div class="logo-placeholder">لوگو</div>`}
+    <strong>${escapeHtml(title)}</strong>
+    <span>🛒</span>
+    <span>👤</span>
+  `;
+}
+
+function renderHomeImagesEditor() {
+  homeImagesEditor.innerHTML = "";
+
+  data.categories.slice(0, 4).forEach((category, index) => {
+    const card = document.createElement("article");
+    card.className = "home-image-card";
+    card.innerHTML = `
+      <div class="home-image-preview">
+        ${category.image ? `<img src="${escapeHtml(category.image)}" alt="${escapeHtml(category.title)}" />` : `<span>بدون تصویر</span>`}
+      </div>
+
+      <label>عنوان بخش
+        <input type="text" data-home-title="${index}" value="${escapeHtml(category.title || "")}" />
+      </label>
+
+      <label>آدرس تصویر
+        <input type="url" data-home-image="${index}" value="${escapeHtml(category.image || "")}" placeholder="https://..." />
+      </label>
+
+      <label>انتخاب عکس از دستگاه
+        <input type="file" accept="image/*" data-home-file="${index}" />
+      </label>
+    `;
+
+    const urlInput = card.querySelector(`[data-home-image="${index}"]`);
+    const fileInput = card.querySelector(`[data-home-file="${index}"]`);
+    const preview = card.querySelector(".home-image-preview");
+
+    urlInput.addEventListener("input", () => {
+      const value = urlInput.value.trim();
+      preview.innerHTML = value
+        ? `<img src="${escapeHtml(value)}" alt="پیش‌نمایش" />`
+        : `<span>بدون تصویر</span>`;
+    });
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+
+      if (file.size > 1_500_000) {
+        alert("حجم عکس باید کمتر از ۱.۵ مگابایت باشد.");
+        fileInput.value = "";
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        urlInput.value = String(reader.result || "");
+        preview.innerHTML = `<img src="${escapeHtml(urlInput.value)}" alt="پیش‌نمایش" />`;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    homeImagesEditor.appendChild(card);
+  });
+}
+
+[headerTitle, headerLogo, headerBackground, headerTextColor].forEach(input => {
+  input.addEventListener("input", renderHeaderPreview);
+});
 
 function renderCategories() {
   categoriesList.innerHTML = "";
@@ -121,6 +227,35 @@ function renderProducts() {
     productsList.appendChild(node);
   });
 }
+
+
+document.getElementById("saveHeaderBtn").onclick = () => {
+  data.header = {
+    title: headerTitle.value.trim() || data.storeName || "فروشگاه نمونه",
+    logo: headerLogo.value.trim(),
+    background: headerBackground.value || "#ffffff",
+    textColor: headerTextColor.value || "#111827"
+  };
+
+  data.storeName = data.header.title;
+  saveData(data);
+  alert("تنظیمات هدر ذخیره شد");
+  render();
+};
+
+document.getElementById("saveHomeImagesBtn").onclick = () => {
+  data.categories.slice(0, 4).forEach((category, index) => {
+    const titleInput = document.querySelector(`[data-home-title="${index}"]`);
+    const imageInput = document.querySelector(`[data-home-image="${index}"]`);
+
+    if (titleInput) category.title = titleInput.value.trim() || category.title;
+    if (imageInput) category.image = imageInput.value.trim();
+  });
+
+  saveData(data);
+  alert("عکس‌های صفحه اصلی ذخیره شدند");
+  render();
+};
 
 document.getElementById("saveGeneralBtn").onclick = () => {
   data.storeName = storeName.value.trim();

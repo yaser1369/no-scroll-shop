@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>پنل مدیریت فروشگاه نمونه</title>
-  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="admin.css?v=4" />
 </head>
 <body>
   <header class="admin-header">
@@ -18,7 +18,49 @@
     </div>
   </header>
 
+  
   <main class="admin-layout">
+    <section class="panel">
+      <div class="panel-title">
+        <h2>تنظیمات هدر اپ</h2>
+        <button id="saveHeaderBtn">ذخیره هدر</button>
+      </div>
+
+      <div class="row">
+        <label>عنوان هدر
+          <input id="headerTitle" type="text" placeholder="نام فروشگاه" />
+        </label>
+
+        <label>آدرس لوگو
+          <input id="headerLogo" type="url" placeholder="https://..." />
+        </label>
+      </div>
+
+      <div class="row">
+        <label>رنگ پس‌زمینه هدر
+          <input id="headerBackground" type="color" value="#ffffff" />
+        </label>
+
+        <label>رنگ متن هدر
+          <input id="headerTextColor" type="color" value="#111827" />
+        </label>
+      </div>
+
+      <div class="preview-box">
+        <span>پیش‌نمایش هدر</span>
+        <div id="headerPreview" class="header-preview"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-title">
+        <h2>عکس‌های صفحه اصلی</h2>
+        <button id="saveHomeImagesBtn">ذخیره عکس‌ها</button>
+      </div>
+
+      <div id="homeImagesEditor" class="home-images-editor"></div>
+    </section>
+
     <section class="panel">
       <div class="panel-title">
         <h2>تنظیمات عمومی</h2>
@@ -86,6 +128,6 @@
     </article>
   </template>
 
-  <script src="admin.js"></script>
+  <script src="admin.js?v=4"></script>
 </body>
 </html>

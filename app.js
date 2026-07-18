@@ -5,6 +5,12 @@ const CART_KEY = "noScrollShopCartV1";
 const seedData = {
   storeName: "فروشگاه نمونه",
   offerTitle: "آفر ویژه",
+  header: {
+    title: "فروشگاه نمونه",
+    logo: "",
+    background: "#ffffff",
+    textColor: "#111827"
+  },
   categories: [
     { id: "women", title: "زنانه", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80" },
     { id: "men", title: "مردانه", image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=1200&q=80" },
@@ -75,11 +81,23 @@ function money(value) {
 
 function topbar({showHome=false, showBack=false}={}) {
   const data = getData();
+  const header = data.header || {
+    title: data.storeName || "فروشگاه نمونه",
+    logo: "",
+    background: "#ffffff",
+    textColor: "#111827"
+  };
   const cartCount = getCart().reduce((sum, item) => sum + item.qty, 0);
+
   return `
-    <header class="topbar">
+    <header class="topbar" style="background:${escapeAttr(header.background)};color:${escapeAttr(header.textColor)}">
       ${showHome ? `<button class="icon-btn" data-nav="home" aria-label="صفحه اصلی">⌂</button>` : `<div></div>`}
-      <div class="brand">${escapeHtml(data.storeName)}</div>
+
+      <div class="brand-wrap">
+        ${header.logo ? `<img class="header-logo" src="${escapeAttr(header.logo)}" alt="لوگو" />` : ""}
+        <div class="brand">${escapeHtml(header.title || data.storeName)}</div>
+      </div>
+
       ${showBack ? `<button class="back-btn" data-nav="back" aria-label="برگشت">←</button>` : `<div></div>`}
       <button class="icon-btn" data-nav="cart" aria-label="سبد خرید">🛒<span class="cart-count">${cartCount}</span></button>
       <button class="icon-btn" data-nav="profile" aria-label="حساب کاربری">👤</button>

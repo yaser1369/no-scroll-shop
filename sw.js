@@ -1,12 +1,12 @@
-const CACHE = "no-scroll-shop-v3";
+const CACHE = "no-scroll-shop-v4";
 const ASSETS = [
   "./",
   "index.html",
-  "styles.css?v=3",
-  "app.js?v=3",
+  "styles.css?v=4",
+  "app.js?v=4",
   "admin.html",
-  "admin.css",
-  "admin.js",
+  "admin.css?v=4",
+  "admin.js?v=4",
   "manifest.webmanifest"
 ];
 
